@@ -12,5 +12,3 @@ pnpm-debug.log*
 
 # Test coverage
 /coverage
-
-.idea

@@ -36,26 +36,32 @@
   "author": "kungfuHash <kungfuHash@gmail.com>",
   "license": "MIT",
   "peerDependencies": {
+    "@tanstack/react-query": "^5.81.2",
     "react": ">=18.0.0",
-    "@tanstack/react-query": ">=5.0.0",
     "viem": "^2.0.0",
     "wagmi": "^2.0.0"
   },
   "devDependencies": {
+    "@tanstack/react-query": "^5.81.2",
     "@testing-library/react": "^16.0.0",
     "@types/react": "^18.3.3",
     "@vitest/coverage-v8": "^1.6.0",
+    "dotenv": "^17.2.2",
     "jsdom": "^24.1.0",
+    "react": ">=18.0.0",
     "tsup": "^8.5.0",
     "typescript": "^5.4.5",
-    "vitest": "^1.6.0",
-    "react": ">=18.0.0",
-    "@tanstack/react-query": ">=5.0.0",
     "viem": "^2.0.0",
+    "vitest": "^1.6.0",
     "wagmi": "^2.0.0"
   },
   "publishConfig": {
     "access": "public",
     "registry": "https://npm.pkg.github.com/"
+  },
+  "dependencies": {
+    "@types/node": "^24.5.2",
+    "@uniswap/sdk-core": "^7.7.2",
+    "@uniswap/v3-sdk": "^3.25.2"
   }
 }

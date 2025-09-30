@@ -1,107 +1,229 @@
 export const agentApiAbi = [
     {
-        "inputs": [],
-        "name": "InvalidInitialization",
-        "type": "error"
+        "inputs":[
+        ],
+        "name":"InvalidInitialization",
+        "type":"error"
     },
     {
-        "inputs": [],
-        "name": "NotInitializing",
-        "type": "error"
+        "inputs":[
+        ],
+        "name":"NotInitializing",
+        "type":"error"
     },
     {
-        "anonymous": false,
-        "inputs": [
+        "anonymous":false,
+        "inputs":[
             {
-                "indexed": false,
-                "internalType": "uint64",
-                "name": "version",
-                "type": "uint64"
+                "indexed":false,
+                "internalType":"uint64",
+                "name":"version",
+                "type":"uint64"
             }
         ],
-        "name": "Initialized",
-        "type": "event"
+        "name":"Initialized",
+        "type":"event"
     },
     {
-        "inputs": [],
-        "name": "agentId",
-        "outputs": [
+        "inputs":[
+        ],
+        "name":"agentId",
+        "outputs":[
             {
-                "internalType": "uint256",
-                "name": "",
-                "type": "uint256"
+                "internalType":"uint256",
+                "name":"",
+                "type":"uint256"
             }
         ],
-        "stateMutability": "view",
-        "type": "function"
+        "stateMutability":"view",
+        "type":"function"
     },
     {
-        "inputs": [],
-        "name": "aileyApiContract",
-        "outputs": [
+        "inputs":[
+        ],
+        "name":"aileyApiContract",
+        "outputs":[
             {
-                "internalType": "contract AileyApi",
-                "name": "",
-                "type": "address"
+                "internalType":"contract AileyApi",
+                "name":"",
+                "type":"address"
             }
         ],
-        "stateMutability": "view",
-        "type": "function"
+        "stateMutability":"view",
+        "type":"function"
     },
     {
-        "inputs": [],
-        "name": "aleToken",
-        "outputs": [
+        "inputs":[
+        ],
+        "name":"aleToken",
+        "outputs":[
             {
-                "internalType": "contract Ailey",
-                "name": "",
-                "type": "address"
+                "internalType":"contract Ailey",
+                "name":"",
+                "type":"address"
             }
         ],
-        "stateMutability": "view",
-        "type": "function"
+        "stateMutability":"view",
+        "type":"function"
     },
     {
-        "inputs": [],
-        "name": "callTest",
-        "outputs": [],
-        "stateMutability": "nonpayable",
-        "type": "function"
-    },
-    {
-        "inputs": [
+        "inputs":[
             {
-                "internalType": "uint256",
-                "name": "_agentId",
-                "type": "uint256"
+                "internalType":"address",
+                "name":"tokenA",
+                "type":"address"
             },
             {
-                "internalType": "contract Ailey",
-                "name": "_aleToken",
-                "type": "address"
+                "internalType":"address",
+                "name":"tokenB",
+                "type":"address"
             },
             {
-                "internalType": "contract AileyApi",
-                "name": "_aileyApiContract",
-                "type": "address"
+                "internalType":"uint24",
+                "name":"fee",
+                "type":"uint24"
+            },
+            {
+                "internalType":"int24",
+                "name":"tickLower",
+                "type":"int24"
+            },
+            {
+                "internalType":"int24",
+                "name":"tickUpper",
+                "type":"int24"
+            },
+            {
+                "internalType":"uint256",
+                "name":"amountADesired",
+                "type":"uint256"
+            },
+            {
+                "internalType":"uint256",
+                "name":"amountBDesired",
+                "type":"uint256"
+            },
+            {
+                "internalType":"uint256",
+                "name":"amountAMin",
+                "type":"uint256"
+            },
+            {
+                "internalType":"uint256",
+                "name":"amountBMin",
+                "type":"uint256"
+            },
+            {
+                "internalType":"address",
+                "name":"to",
+                "type":"address"
+            },
+            {
+                "internalType":"uint256",
+                "name":"deadline",
+                "type":"uint256"
             }
         ],
-        "name": "initialize",
-        "outputs": [],
-        "stateMutability": "nonpayable",
-        "type": "function"
+        "name":"callAddLiquidity",
+        "outputs":[
+        ],
+        "stateMutability":"nonpayable",
+        "type":"function"
     },
     {
-        "inputs": [],
-        "name": "version",
-        "outputs": [
+        "inputs":[
             {
-                "internalType": "string",
-                "name": "",
-                "type": "string"
+                "internalType":"address",
+                "name":"tokenIn",
+                "type":"address"
+            },
+            {
+                "internalType":"address",
+                "name":"tokenOut",
+                "type":"address"
+            },
+            {
+                "internalType":"uint24",
+                "name":"fee",
+                "type":"uint24"
+            },
+            {
+                "internalType":"uint256",
+                "name":"amountIn",
+                "type":"uint256"
+            },
+            {
+                "internalType":"uint256",
+                "name":"amountOutMinimum",
+                "type":"uint256"
+            },
+            {
+                "internalType":"address",
+                "name":"recipient",
+                "type":"address"
+            },
+            {
+                "internalType":"uint256",
+                "name":"deadline",
+                "type":"uint256"
             }
         ],
-        "stateMutability": "pure",
-        "type": "function"
+        "name":"callSwap",
+        "outputs":[
+            {
+                "internalType":"uint256",
+                "name":"amountOut",
+                "type":"uint256"
+            }
+        ],
+        "stateMutability":"nonpayable",
+        "type":"function"
+    },
+    {
+        "inputs":[
+        ],
+        "name":"callTest",
+        "outputs":[
+        ],
+        "stateMutability":"nonpayable",
+        "type":"function"
+    },
+    {
+        "inputs":[
+            {
+                "internalType":"uint256",
+                "name":"_agentId",
+                "type":"uint256"
+            },
+            {
+                "internalType":"contract Ailey",
+                "name":"_aleToken",
+                "type":"address"
+            },
+            {
+                "internalType":"contract AileyApi",
+                "name":"_aileyApiContract",
+                "type":"address"
+            }
+        ],
+        "name":"initialize",
+        "outputs":[
+        ],
+        "stateMutability":"nonpayable",
+        "type":"function"
+    },
+    {
+        "inputs":[
+        ],
+        "name":"version",
+        "outputs":[
+            {
+                "internalType":"string",
+                "name":"",
+                "type":"string"
+            }
+        ],
+        "stateMutability":"pure",
+        "type":"function"
     }
 ]
