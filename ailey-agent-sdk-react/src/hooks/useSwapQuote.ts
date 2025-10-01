@@ -1,100 +1,7 @@
-import {useEffect, useMemo, useState} from 'react';
-import {useChainId, useReadContract, useReadContracts} from 'wagmi';
-import {erc20Abi} from 'viem';
+import {useEffect, useState} from 'react';
 import {CurrencyAmount, Token} from "@uniswap/sdk-core";
-import {Pool} from "@uniswap/v3-sdk";
 import JSBI from "jsbi";
-
-const UNISWAP_V3_FACTORY_ADDRESS = process.env.UNISWAP_V3_FACTORY_ADDRESS as `0x${string}`;
-const UNISWAP_V3_FACTORY_ABI = [
-    {
-        "inputs": [
-            {
-                "internalType": "address",
-                "name": "tokenA",
-                "type": "address"
-            },
-            {
-                "internalType": "address",
-                "name": "tokenB",
-                "type": "address"
-            },
-            {
-                "internalType": "uint24",
-                "name": "fee",
-                "type": "uint24"
-            }
-        ],
-        "name": "getPool",
-        "outputs": [
-            {
-                "internalType": "address",
-                "name": "pool",
-                "type": "address"
-            }
-        ],
-        "stateMutability": "view",
-        "type": "function"
-    }
-] as const;
-const UNISWAP_V3_POOL_ABI = [
-    {
-        "inputs": [],
-        "name": "slot0",
-        "outputs": [
-            {
-                "internalType": "uint160",
-                "name": "sqrtPriceX96",
-                "type": "uint160"
-            },
-            {
-                "internalType": "int24",
-                "name": "tick",
-                "type": "int24"
-            },
-            {
-                "internalType": "uint16",
-                "name": "observationIndex",
-                "type": "uint16"
-            },
-            {
-                "internalType": "uint16",
-                "name": "observationCardinality",
-                "type": "uint16"
-            },
-            {
-                "internalType": "uint16",
-                "name": "observationCardinalityNext",
-                "type": "uint16"
-            },
-            {
-                "internalType": "uint8",
-                "name": "feeProtocol",
-                "type": "uint8"
-            },
-            {
-                "internalType": "bool",
-                "name": "unlocked",
-                "type": "bool"
-            }
-        ],
-        "stateMutability": "view",
-        "type": "function"
-    },
-    {
-        "inputs": [],
-        "name": "liquidity",
-        "outputs": [
-            {
-                "internalType": "uint128",
-                "name": "",
-                "type": "uint128"
-            }
-        ],
-        "stateMutability": "view",
-        "type": "function"
-    }
-] as const;
+import {usePoolData} from './usePoolData';
 
 /**
  * Parameters for getting a swap quote from Uniswap V3
@@ -143,9 +50,6 @@ export interface SwapQuoteResult {
  * 5. Calculate estimated output and minimum output with slippage protection
  */
 export function useSwapQuote(params?: SwapQuoteParams) {
-    const chainId = useChainId();
-    const [error, setError] = useState<string | null>(null);
-
     const {
         tokenInAddress,
         tokenOutAddress,
@@ -159,87 +63,36 @@ export function useSwapQuote(params?: SwapQuoteParams) {
         amountOutMinimum?: bigint;
     }>({});
 
-    // 1. Fetch token metadata (decimals, symbols) for both tokens
-    const {data: tokenData, isLoading: isTokenDataLoading} = useReadContracts({
-        contracts: [
-            {address: tokenInAddress, abi: erc20Abi, functionName: 'decimals'},
-            {address: tokenInAddress, abi: erc20Abi, functionName: 'symbol'},
-            {address: tokenOutAddress, abi: erc20Abi, functionName: 'decimals'},
-            {address: tokenOutAddress, abi: erc20Abi, functionName: 'symbol'},
-        ],
-        query: {enabled: !!tokenInAddress && !!tokenOutAddress}
-    });
+    // Use the common pool data hook
+    const {
+        tokenA,
+        tokenB,
+        pool,
+        poolAddress,
+        isLoading,
+        error
+    } = usePoolData(params && tokenInAddress && tokenOutAddress ? {
+        tokenAAddress: tokenInAddress,
+        tokenBAddress: tokenOutAddress,
+        fee
+    } : undefined);
 
-    // 2. Create Uniswap Token objects from metadata
-    const [tokenIn, tokenOut] = useMemo(() => {
-        if (!tokenData || !chainId) return [undefined, undefined];
+    // Determine which token is input and which is output based on addresses
+    const [tokenIn, tokenOut] = tokenA && tokenB ? (
+        tokenA.address.toLowerCase() === tokenInAddress?.toLowerCase()
+            ? [tokenA, tokenB]
+            : [tokenB, tokenA]
+    ) : [undefined, undefined];
 
-        const [inDecimals, inSymbol, outDecimals, outSymbol] = tokenData.map(d => d.result);
-
-        if (
-            typeof inDecimals !== 'number' ||
-            typeof outDecimals !== 'number' ||
-            !tokenInAddress || !tokenOutAddress
-        ) {
-            return [undefined, undefined];
-        }
-
-        const inToken = new Token(chainId, tokenInAddress, inDecimals, inSymbol as string || 'TOKEN_IN');
-        const outToken = new Token(chainId, tokenOutAddress, outDecimals, outSymbol as string || 'TOKEN_OUT');
-
-        return [inToken, outToken];
-    }, [tokenData, chainId, tokenInAddress, tokenOutAddress]);
-
-    // 3. Find Uniswap V3 pool for token pair and fee tier
-    const {data: poolAddress, isLoading: isPoolAddressLoading} = useReadContract({
-        address: UNISWAP_V3_FACTORY_ADDRESS,
-        abi: UNISWAP_V3_FACTORY_ABI,
-        functionName: 'getPool',
-        args: tokenIn && tokenOut ? [
-            tokenIn.address as `0x${string}`,
-            tokenOut.address as `0x${string}`,
-            fee
-        ] : undefined,
-        query: {enabled: !!tokenIn && !!tokenOut && !!fee}
-    });
-
-    // 4. Fetch pool state (price and liquidity)
-    const {data: poolData, isLoading: isPoolStateLoading} = useReadContracts({
-        contracts: [
-            {address: poolAddress, abi: UNISWAP_V3_POOL_ABI, functionName: 'slot0'},
-            {address: poolAddress, abi: UNISWAP_V3_POOL_ABI, functionName: 'liquidity'},
-        ],
-        query: {enabled: !!poolAddress && poolAddress !== '0x0000000000000000000000000000000000000000'}
-    });
-
-    // 5. Calculate swap quote with slippage protection
+    // Calculate swap quote with slippage protection
     useEffect(() => {
         const calculateQuote = async () => {
-            if (!poolData || !tokenIn || !tokenOut || !amountIn || amountIn === 0n) {
-                setQuoteResult({});
-                return;
-            }
-
-            const slot0 = poolData[0]?.result;
-            const liquidity = poolData[1]?.result;
-
-            if (!slot0 || typeof liquidity !== 'bigint') {
+            if (!pool || !tokenIn || !tokenOut || !amountIn || amountIn === 0n) {
                 setQuoteResult({});
                 return;
             }
 
             try {
-                const [sqrtPriceX96, tick] = slot0;
-
-                const pool = new Pool(
-                    tokenIn,
-                    tokenOut,
-                    fee,
-                    sqrtPriceX96.toString(),
-                    liquidity.toString(),
-                    tick
-                );
-
                 const inputAmount = CurrencyAmount.fromRawAmount(tokenIn, amountIn.toString());
                 const price = pool.priceOf(tokenIn);
                 const outputAmount = price.quote(inputAmount);
@@ -265,21 +118,12 @@ export function useSwapQuote(params?: SwapQuoteParams) {
 
         calculateQuote();
 
-    }, [poolData, tokenIn, tokenOut, fee, amountIn, slippageTolerance]);
-
-    // Error handling for missing pools
-    useEffect(() => {
-        if (params && !isPoolAddressLoading && poolAddress === '0x0000000000000000000000000000000000000000') {
-            setError(`Pool not found for the given tokens and fee tier (${fee / 10000}%)`);
-        } else {
-            setError(null);
-        }
-    }, [poolAddress, isPoolAddressLoading, params, fee]);
+    }, [pool, tokenIn, tokenOut, amountIn, slippageTolerance]);
 
     return {
         estimatedAmountOut: quoteResult.estimatedAmountOut,
         amountOutMinimum: quoteResult.amountOutMinimum,
-        isLoading: isTokenDataLoading || isPoolAddressLoading || isPoolStateLoading,
+        isLoading,
         error,
         tokenIn,
         tokenOut,

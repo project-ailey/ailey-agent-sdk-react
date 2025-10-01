@@ -1,16 +1,50 @@
-import { useCallSwap, type SwapParams, useAccount } from 'ailey-agent-sdk-react';
-import {useState} from 'react';
-import { parseUnits } from 'viem';
+import {type SwapParams, useAccount, useCallSwap, useSwapQuote, useTokenBalance} from 'ailey-agent-sdk-react';
+import {useMemo, useState} from 'react';
+import {formatUnits, parseUnits} from 'viem';
 
 /**
  * Demo component for testing token swaps through Ailey Agent
  * Swaps WBNB -> ALE tokens with fixed parameters
  */
 export function SwapTest() {
-    const { callSwap, isPending, isSuccess, isError } = useCallSwap();
-    const { isConnected, address } = useAccount();
+    const {callSwap, isPending, isSuccess, isError} = useCallSwap();
+    const {isConnected, address} = useAccount();
     const [amountIn, setAmountIn] = useState('0.001');
     const [recipientAddress, setRecipientAddress] = useState('');
+
+    // Get WBNB token balance
+    const {
+        balance: wbnbBalance,
+        balanceWei: wbnbBalanceWei,
+        isLoading: isBalanceLoading
+    } = useTokenBalance(import.meta.env.VITE_APP_CONTRACT_BNB_ADDR);
+
+    // Calculate amountInWei for quote and validation
+    const amountInWei = useMemo(() => {
+        try {
+            if (!amountIn || parseFloat(amountIn) <= 0) return undefined;
+            return parseUnits(amountIn, 18);
+        } catch {
+            return undefined;
+        }
+    }, [amountIn]);
+
+    // Get real-time swap quote
+    const {
+        estimatedAmountOut,
+        amountOutMinimum,
+        isLoading: isQuoteLoading
+    } = useSwapQuote(amountInWei ? {
+        tokenInAddress: import.meta.env.VITE_APP_CONTRACT_BNB_ADDR,
+        tokenOutAddress: import.meta.env.VITE_APP_CONTRACT_ALE_TOKEN_ADDR,
+        amountIn: amountInWei,
+    } : undefined);
+
+    // Check if balance is sufficient
+    const hasInsufficientBalance = useMemo(() => {
+        if (!amountInWei || !wbnbBalanceWei) return false;
+        return amountInWei > wbnbBalanceWei;
+    }, [amountInWei, wbnbBalanceWei]);
 
     const handleSwap = () => {
         if (!isConnected) {
@@ -104,10 +138,71 @@ export function SwapTest() {
                                     <span className="text-gray-500 text-sm font-medium">WBNB</span>
                                 </div>
                             </div>
-                            <p className="mt-1 text-xs text-gray-500">
-                                Minimum: 0.001 WBNB
-                            </p>
+                            <div className="mt-2 flex justify-between items-center">
+                                <p className="text-xs text-gray-500">
+                                    Minimum: 0.001 WBNB
+                                </p>
+                                <p className="text-xs text-gray-600">
+                                    {isBalanceLoading ? (
+                                        <span>Loading balance...</span>
+                                    ) : (
+                                        <span>Balance: <span
+                                            className="font-semibold">{parseFloat(wbnbBalance).toFixed(6)} WBNB</span></span>
+                                    )}
+                                </p>
+                            </div>
                         </div>
+
+                        {/* Real-time Quote Display */}
+                        {amountInWei && amountInWei > 0n && (
+                            <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                                <h5 className="text-sm font-semibold text-blue-900 mb-3">Swap Preview</h5>
+                                {isQuoteLoading ? (
+                                    <div className="flex items-center justify-center py-2">
+                                        <svg className="animate-spin h-5 w-5 text-blue-600" viewBox="0 0 24 24">
+                                            <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor"
+                                                    strokeWidth="4" fill="none"></circle>
+                                            <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 0 1 8-8v8H4z"></path>
+                                        </svg>
+                                        <span className="ml-2 text-sm text-blue-600">Calculating quote...</span>
+                                    </div>
+                                ) : estimatedAmountOut ? (
+                                    <div className="space-y-2">
+                                        <div className="flex justify-between items-center">
+                                            <span className="text-sm text-blue-700">Expected Output:</span>
+                                            <span className="text-sm font-semibold text-blue-900">
+                                                {parseFloat(formatUnits(estimatedAmountOut, 18)).toFixed(6)} ALE
+                                            </span>
+                                        </div>
+                                        <div className="flex justify-between items-center">
+                                            <span className="text-sm text-blue-700">Minimum Received (0.5% slippage):</span>
+                                            <span className="text-sm font-semibold text-blue-900">
+                                                {amountOutMinimum ? parseFloat(formatUnits(amountOutMinimum, 18)).toFixed(6) : '0'} ALE
+                                            </span>
+                                        </div>
+                                    </div>
+                                ) : (
+                                    <p className="text-sm text-blue-600">Enter amount to see quote</p>
+                                )}
+                            </div>
+                        )}
+
+                        {/* Insufficient Balance Warning */}
+                        {hasInsufficientBalance && (
+                            <div className="bg-red-50 border border-red-200 rounded-lg p-4">
+                                <div className="flex items-start">
+                                    <div className="flex-shrink-0">
+                                        <span className="text-red-600 text-lg">⚠️</span>
+                                    </div>
+                                    <div className="ml-3">
+                                        <h5 className="text-sm font-medium text-red-800">Insufficient Balance</h5>
+                                        <p className="text-sm text-red-700 mt-1">
+                                            You don't have enough WBNB. Your balance is {parseFloat(wbnbBalance).toFixed(6)} WBNB.
+                                        </p>
+                                    </div>
+                                </div>
+                            </div>
+                        )}
 
                         <div>
                             <label className="block text-sm font-semibold text-gray-700 mb-2">
@@ -130,15 +225,17 @@ export function SwapTest() {
                 {/* Swap Button */}
                 <button
                     onClick={handleSwap}
-                    disabled={isPending || !isConnected || !amountIn || parseFloat(amountIn) <= 0}
+                    disabled={isPending || !isConnected || !amountIn || parseFloat(amountIn) <= 0 || hasInsufficientBalance}
                     className={`w-full py-4 px-6 rounded-lg font-semibold text-white transition-all duration-200 ${
                         !isConnected
                             ? 'bg-gray-400 cursor-not-allowed'
                             : isPending
-                            ? 'bg-green-400 cursor-not-allowed'
-                            : !amountIn || parseFloat(amountIn) <= 0
-                            ? 'bg-gray-400 cursor-not-allowed'
-                            : 'bg-green-600 hover:bg-green-700 hover:shadow-lg'
+                                ? 'bg-green-400 cursor-not-allowed'
+                                : !amountIn || parseFloat(amountIn) <= 0
+                                    ? 'bg-gray-400 cursor-not-allowed'
+                                    : hasInsufficientBalance
+                                        ? 'bg-red-400 cursor-not-allowed'
+                                        : 'bg-green-600 hover:bg-green-700 hover:shadow-lg'
                     } focus:outline-none focus:ring-4 focus:ring-green-300`}
                 >
                     {!isConnected ? (
@@ -151,10 +248,16 @@ export function SwapTest() {
                             <span>⚠️</span>
                             <span>Enter Valid Amount</span>
                         </span>
+                    ) : hasInsufficientBalance ? (
+                        <span className="flex items-center justify-center space-x-2">
+                            <span>💸</span>
+                            <span>Insufficient Balance</span>
+                        </span>
                     ) : isPending ? (
                         <span className="flex items-center justify-center space-x-2">
                             <svg className="animate-spin h-5 w-5" viewBox="0 0 24 24">
-                                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none"></circle>
+                                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"
+                                        fill="none"></circle>
                                 <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 0 1 8-8v8H4z"></path>
                             </svg>
                             <span>Processing Swap...</span>

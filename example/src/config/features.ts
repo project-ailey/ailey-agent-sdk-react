@@ -1,5 +1,6 @@
 import { CallTest } from '../components/CallTest';
 import { SwapTest } from '../components/SwapTest';
+import { AddLiquidityTest } from '../components/AddLiquidityTest';
 import type {ComponentType} from 'react';
 
 export interface Feature {
@@ -29,6 +30,15 @@ export const features: Feature[] = [
         icon: '🔄',
         component: SwapTest,
         color: 'green',
+        category: 'defi'
+    },
+    {
+        id: 'addLiquidityTest',
+        title: 'Add Liquidity',
+        description: 'Add liquidity to token pools through the Ailey Agent API',
+        icon: '💧',
+        component: AddLiquidityTest,
+        color: 'blue',
         category: 'defi'
     }
     // Add more features here as they are developed
