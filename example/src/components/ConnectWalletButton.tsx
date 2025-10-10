@@ -1,40 +1,53 @@
 import {useAccount, useConnect, useDisconnect} from "ailey-agent-sdk-react";
+import { Button } from "@/components/ui/button"
+import { Loader2Icon, CheckCircle2, LogOut } from "lucide-react"
 
 export function ConnectWalletButton() {
     const {address, isConnected} = useAccount();
-    const {connectors, connect} = useConnect();
+    const {connectors, connect, isPending} = useConnect();
     const {disconnect} = useDisconnect();
 
     if (isConnected) {
         return (
-            <div className="flex items-center space-x-4">
-                <div className="flex items-center space-x-2 bg-green-50 px-4 py-2 rounded-lg border border-green-200">
-                    <div className="w-3 h-3 bg-green-500 rounded-full animate-pulse"></div>
-                    <span className="text-sm font-medium text-green-800">
+            <div className="flex items-center gap-4">
+                <div className="flex items-center gap-2 bg-green-50 dark:bg-green-950/30 px-3 py-2 rounded-md border border-green-200 dark:border-green-800 h-10">
+                    <CheckCircle2 className="text-green-600 dark:text-green-400" size={16} />
+                    <span className="text-sm font-medium text-green-800 dark:text-green-300">
                         {`${address?.slice(0, 6)}...${address?.slice(-4)}`}
                     </span>
                 </div>
-                <button
+                <Button
                     onClick={() => disconnect()}
-                    className="px-4 py-2 text-sm font-medium text-red-600 bg-red-50 border border-red-200 rounded-lg hover:bg-red-100 hover:border-red-300 transition-colors duration-200"
+                    variant="outline"
+                    size="sm"
+                    className="h-10 cursor-pointer"
                 >
+                    <LogOut size={16} />
                     Disconnect
-                </button>
+                </Button>
             </div>
         );
     }
 
     return (
-        <div className="flex items-center space-x-2">
+        <div className="flex items-center">
             {connectors.map((connector) => (
-                <button
+                <Button
                     key={connector.uid}
                     onClick={() => connect({connector})}
-                    className="flex items-center space-x-2 px-6 py-2 font-semibold text-white bg-gradient-to-r from-blue-600 to-purple-600 rounded-lg hover:from-blue-700 hover:to-purple-700 transition-all duration-200 shadow-md hover:shadow-lg"
+                    className="flex items-center justify-center gap-2 h-10 cursor-pointer"
+                    size="sm"
+                    disabled={isPending}
                 >
-                    <span>🔗</span>
-                    <span>Connect {connector.name}</span>
-                </button>
+                    {isPending ? (
+                        <>
+                            <Loader2Icon className="animate-spin" />
+                            Please wait
+                        </>
+                    ) : (
+                        <span>Connect MetaMask</span>
+                    )}
+                </Button>
             ))}
         </div>
     );
