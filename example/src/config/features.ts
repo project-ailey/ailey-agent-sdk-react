@@ -10,7 +10,7 @@ export interface Feature {
     title: string;
     description: string;
     icon: LucideIcon;
-    component: ComponentType;
+    component: ComponentType<{ onClose: () => void }>;
     category: 'contract' | 'defi' | 'utility';
 }
 

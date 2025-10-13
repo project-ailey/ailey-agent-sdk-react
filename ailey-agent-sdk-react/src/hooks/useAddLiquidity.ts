@@ -239,6 +239,7 @@ export function useAddLiquidity() {
         data: approve0TxHash,
         isPending: isApproving0,
         error: approve0Error,
+        reset: resetApprove0,
     } = useWriteContract();
 
     // Token1 approval transaction
@@ -247,6 +248,7 @@ export function useAddLiquidity() {
         data: approve1TxHash,
         isPending: isApproving1,
         error: approve1Error,
+        reset: resetApprove1,
     } = useWriteContract();
 
     // Add liquidity transaction
@@ -255,6 +257,7 @@ export function useAddLiquidity() {
         data: addLiquidityTxHash,
         isPending: isAddingLiquidity,
         error: addLiquidityError,
+        reset: resetAddLiquidityTx,
     } = useWriteContract();
 
     // Wait for transaction confirmations
@@ -396,7 +399,10 @@ export function useAddLiquidity() {
         setError(null);
         setCurrentParams(null);
         setDebugInfo({});
-    }, []);
+        resetApprove0();
+        resetApprove1();
+        resetAddLiquidityTx();
+    }, [resetApprove0, resetApprove1, resetAddLiquidityTx]);
 
     /**
      * Disconnect wallet on critical errors

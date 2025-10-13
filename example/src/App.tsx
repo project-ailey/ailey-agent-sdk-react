@@ -85,7 +85,9 @@ function App() {
                                 <selectedFeature.icon className="w-6 h-6 text-gray-900" />
                                 <h3 className="text-xl font-bold text-gray-900">{selectedFeature.title}</h3>
                             </div>
-                            <selectedFeature.component />
+                            <selectedFeature.component
+                                onClose={() => setSelectedFeature(null)}
+                            />
                         </div>
                     )}
                 </section>

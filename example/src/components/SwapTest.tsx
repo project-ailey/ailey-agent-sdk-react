@@ -8,7 +8,7 @@ import {AlertCircle, Loader2, Info} from 'lucide-react';
  * Demo component for testing token swaps through Ailey Agent
  * Swaps WBNB -> ALE tokens with fixed parameters
  */
-export function SwapTest() {
+export function SwapTest({ onClose: _onClose }: { onClose: () => void }) {
     const {callSwap, isPending, isSuccess, isError} = useCallSwap();
     const {isConnected, address} = useAccount();
     const [amountIn, setAmountIn] = useState('0.001');

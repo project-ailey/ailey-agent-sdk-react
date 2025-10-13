@@ -1,13 +1,14 @@
 import {useCallback, useEffect, useState} from 'react';
-import {useAccount, useAddLiquidity, useTokenBalance} from 'ailey-agent-sdk-react';
+import {useAccount, useAddLiquidity, useTokenBalance, useDisconnect} from 'ailey-agent-sdk-react';
 import {toast} from 'sonner';
 import {AlertCircle, Loader2, RefreshCw, ChevronDown, ChevronRight, Info} from 'lucide-react';
 
 /**
  * Add Liquidity Test Component via Ailey Agent
  */
-export function AddLiquidityTest() {
+export function AddLiquidityTest({ onClose }: { onClose: () => void }) {
     const {isConnected, address} = useAccount();
+    const {disconnect} = useDisconnect();
 
     const {
         balance: balanceA,
@@ -35,7 +36,6 @@ export function AddLiquidityTest() {
     const {
         callAddLiquidity,
         resetAddLiquidity,
-        disconnectOnError,
         isPending,
         isSuccess,
         isError,
@@ -358,7 +358,10 @@ export function AddLiquidityTest() {
 
                 {isError && (
                     <button
-                        onClick={disconnectOnError}
+                        onClick={() => {
+                            onClose();
+                            disconnect();
+                        }}
                         className="px-6 py-4 rounded-lg font-medium text-red-700 bg-red-100 hover:bg-red-200 transition-colors"
                     >
                         Disconnect

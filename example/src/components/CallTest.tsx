@@ -3,7 +3,7 @@ import { toast } from 'sonner';
 import { Loader2 } from 'lucide-react';
 import { useEffect } from 'react';
 
-export function CallTest() {
+export function CallTest({ onClose: _onClose }: { onClose: () => void }) {
     const { callContract, isPending, isSuccess, isError } = useAgentApiContract();
     const { isConnected } = useAccount();
 
