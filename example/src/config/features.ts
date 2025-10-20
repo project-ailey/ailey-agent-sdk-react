@@ -1,9 +1,10 @@
 import {CallTest} from '../components/CallTest';
 import {SwapTest} from '../components/SwapTest';
 import {AddLiquidityTest} from '../components/AddLiquidityTest';
+import {SwapQuoteTest} from '../components/SwapQuoteTest';
 import type {ComponentType} from 'react';
 import type {LucideIcon} from 'lucide-react';
-import {ArrowLeftRight, Droplets, FileCode} from 'lucide-react';
+import {ArrowLeftRight, Calculator, Droplets, FileCode} from 'lucide-react';
 
 export interface Feature {
     id: string;
@@ -22,6 +23,14 @@ export const features: Feature[] = [
         icon: FileCode,
         component: CallTest,
         category: 'contract'
+    },
+    {
+        id: 'swapQuoteTest',
+        title: 'Swap Quote Calculator',
+        description: 'Get real-time swap quotes with price and slippage information',
+        icon: Calculator,
+        component: SwapQuoteTest,
+        category: 'defi'
     },
     {
         id: 'swapTest',

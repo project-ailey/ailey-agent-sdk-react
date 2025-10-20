@@ -1,8 +1,9 @@
 import {type SwapParams, useAccount, useCallSwap, useSwapQuote, useTokenBalance} from 'ailey-agent-sdk-react';
 import {useMemo, useState, useEffect} from 'react';
-import {formatUnits, parseUnits} from 'viem';
+import {parseUnits} from 'viem';
 import {toast} from 'sonner';
 import {AlertCircle, Loader2, Info} from 'lucide-react';
+import {SwapQuoteDisplay} from './SwapQuoteDisplay';
 
 /**
  * Demo component for testing token swaps through Ailey Agent
@@ -166,34 +167,15 @@ export function SwapTest({ onClose: _onClose }: { onClose: () => void }) {
                     </div>
 
                     {/* Real-time Quote Display */}
-                    {amountInWei && amountInWei > 0n && (
-                        <div className="bg-gray-50 border border-gray-200 rounded-lg p-4">
-                            <h5 className="text-sm font-semibold text-gray-900 mb-3">Swap Preview</h5>
-                            {isQuoteLoading ? (
-                                <div className="flex items-center justify-center py-2">
-                                    <Loader2 className="w-5 h-5 text-gray-600 animate-spin" />
-                                    <span className="ml-2 text-sm text-gray-600">Calculating quote...</span>
-                                </div>
-                            ) : estimatedAmountOut ? (
-                                <div className="space-y-2">
-                                    <div className="flex justify-between items-center">
-                                        <span className="text-sm text-gray-600">Expected Output:</span>
-                                        <span className="text-sm font-semibold text-gray-900">
-                                            {parseFloat(formatUnits(estimatedAmountOut, 18)).toFixed(6)} ALE
-                                        </span>
-                                    </div>
-                                    <div className="flex justify-between items-center">
-                                        <span className="text-sm text-gray-600">Minimum Received:</span>
-                                        <span className="text-sm font-semibold text-gray-900">
-                                            {amountOutMinimum ? parseFloat(formatUnits(amountOutMinimum, 18)).toFixed(6) : '0'} ALE
-                                        </span>
-                                    </div>
-                                </div>
-                            ) : (
-                                <p className="text-sm text-gray-600">Enter amount to see quote</p>
-                            )}
-                        </div>
-                    )}
+                    <SwapQuoteDisplay
+                        amountIn={amountInWei}
+                        estimatedAmountOut={estimatedAmountOut}
+                        amountOutMinimum={amountOutMinimum}
+                        tokenInSymbol="WBNB"
+                        tokenOutSymbol="ALE"
+                        slippageTolerance={0.5}
+                        isLoading={isQuoteLoading}
+                    />
 
                     {/* Insufficient Balance Warning */}
                     {hasInsufficientBalance && (
